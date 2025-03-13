@@ -9,7 +9,7 @@ public class Main {
     var localDao = new LocalDao();
     localDao.init();
 
-    localDao.save(new Todo("Hello", LocalDate.now()));
+//    localDao.save(new Todo("Hello", LocalDate.now()));
 
     List<Todo> allOrderedByDueDec = localDao.findAllOrderByDueDesc();
     System.out.printf(String.valueOf(allOrderedByDueDec.size()));
