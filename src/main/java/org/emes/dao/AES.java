@@ -1,4 +1,4 @@
-package org.emes;
+package org.emes.dao;
 
 import java.nio.ByteBuffer;
 import java.security.SecureRandom;
@@ -10,7 +10,7 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.SneakyThrows;
 
-public class AES {
+class AES {
 
   private static final String KEY_DERIVATION_FUNCTION = "PBKDF2WithHmacSHA512";
   private static final Integer KEY_DERIVATION_ITERATIONS = 210_000;

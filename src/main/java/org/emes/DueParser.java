@@ -16,15 +16,13 @@ public class DueParser {
 
   private static final Logger LOG = LogManager.getLogger();
 
-  private final Pattern IN_X_UNIT = Pattern.compile("\\bin (\\d)+ (day|week|month)s?\\b");
-
-  private final Pattern DAY_OF_WEEK = Pattern.compile(
+  private final static Pattern IN_X_UNIT = Pattern.compile("\\bin (\\d)+ (day|week|month)s?\\b");
+  private final static Pattern DAY_OF_WEEK = Pattern.compile(
       "\\b(next )?(mon|tue|wed|thu|fri|sat|sun)\\b");
-
-  private final Pattern TODAY_TOMORROW = Pattern.compile("\\b(tod|tom)\\b");
-
-  private final Pattern DATE = Pattern.compile(
-      "\\b(?i)(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\\s+([1-9]|[12][0-9]|3[01])(?:st|nd|rd|th)\\b|\\b([1-9]|[12][0-9]|3[01])(?:st|nd|rd|th)\\b"); //TODO implement this
+  private final static Pattern TODAY_TOMORROW = Pattern.compile("\\b(tod|tom)\\b");
+  private final static Pattern DATE = Pattern.compile(
+      "\\b(?i)(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\\s+([1-9]|[12][0-9]|3[01])"
+          + "(?:st|nd|rd|th)\\b|\\b([1-9]|[12][0-9]|3[01])(?:st|nd|rd|th)\\b"); //TODO implement this
 
   private final List<Pair<Pattern, BiFunction<LocalDate, MatchResult, LocalDate>>> patterns = List.of(
       new Pair<>(IN_X_UNIT, this::handleInXUnit),
@@ -43,9 +41,7 @@ public class DueParser {
           matchResult.find();
           return it.b().apply(now, matchResult.toMatchResult());
         })
-        .orElse(null);
-
-    //TODO handle case with no due - implicit today
+        .orElse(now);
   }
 
   private LocalDate handleDate(LocalDate now, MatchResult matchResult) {
