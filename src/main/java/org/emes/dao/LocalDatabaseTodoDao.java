@@ -8,6 +8,7 @@ import static org.hibernate.cfg.JdbcSettings.JAKARTA_JDBC_USER;
 import static org.hibernate.cfg.JdbcSettings.SHOW_SQL;
 import static org.hibernate.cfg.SchemaToolingSettings.JAKARTA_HBM2DDL_DATABASE_ACTION;
 
+import java.time.LocalDate;
 import java.util.List;
 import lombok.SneakyThrows;
 import org.emes.Todo;
@@ -29,6 +30,11 @@ public class LocalDatabaseTodoDao implements TodoDao {
 //    return sessionFactory.fromTransaction(
 //        session -> session.createQuery("FROM TodoSql ORDER BY due DESC", TodoSql.class).list());
     return List.of();
+  }
+
+  @Override
+  public void updateDue(Integer id, LocalDate due) {
+
   }
 
   @SneakyThrows
