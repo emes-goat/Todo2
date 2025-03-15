@@ -1,7 +1,6 @@
 package org.emes.parser
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.emes.parser.ParseResult
 import org.emes.Recurring
 import org.emes.RecurringMode
 
@@ -24,16 +23,17 @@ class RecurringParser {
     )
 
     fun parse(command: String): ParseResult<Recurring>? {
+        return null
+
         return patternWithHandlers
-            .mapNotNull { patternWithHandler ->
+            .mapNotNull<RegexWithHandler, ParseResult<Recurring>> { patternWithHandler ->
                 patternWithHandler.regex.findAll(command).lastOrNull()?.let { match ->
                     var recurring = patternWithHandler.handler(match)
                     logger.info { "Use parser: ${patternWithHandler.regex.pattern}" }
                     return ParseResult(recurring, match.range)
                 }
             }
-            .firstOrNull()
-        //TODO handle case when multiple matches
+            .maxByOrNull { it.range.start }
     }
 
     private fun handleEveryDayOfWeek(matchResult: MatchResult): Recurring {

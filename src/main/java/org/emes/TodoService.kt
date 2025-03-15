@@ -1,7 +1,6 @@
 package org.emes
 
 import java.time.Clock
-import java.time.LocalDate
 
 class TodoService(
     private val dao: TodoDao,

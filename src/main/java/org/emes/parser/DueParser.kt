@@ -1,7 +1,6 @@
 package org.emes.parser
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.emes.parser.ParseResult
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -12,7 +11,7 @@ class DueParser {
 
     private val logger = KotlinLogging.logger {}
 
-    private val inXUnit = Regex("\\bin (\\d)+ (day|week|month)s?\\b")
+    private val inXUnit = Regex("\\bin (\\d{1,2}) (day|week|month)s?\\b")
     private val dayOfWeek = Regex("\\b(next )?(mon|tue|wed|thu|fri|sat|sun)\\b")
     private val todayTomorrow = Regex("\\b(tod|tom)\\b")
     private val date = Regex(
@@ -29,15 +28,14 @@ class DueParser {
 
     fun parse(now: LocalDate, command: String): ParseResult<LocalDate>? {
         return patternWithHandlers
-            .mapNotNull { patternWithHandler ->
+            .mapNotNull<RegexWithHandler, ParseResult<LocalDate>> { patternWithHandler ->
                 patternWithHandler.regex.findAll(command).lastOrNull()?.let { match ->
                     var due = patternWithHandler.handler(now, match)
                     logger.info { "Use parser: ${patternWithHandler.regex.pattern}" }
                     return ParseResult(due, match.range)
                 }
             }
-            .firstOrNull()
-        //TODO handle case when multiple matches
+            .maxByOrNull { it.range.start }
     }
 
     private fun handleDate(now: LocalDate, matchResult: MatchResult): LocalDate {
@@ -45,17 +43,24 @@ class DueParser {
     }
 
     private fun handleTodayTomorrow(now: LocalDate, matchResult: MatchResult): LocalDate {
-        return LocalDate.now()
+        val day = matchResult.groupValues[1]
+        return if (day == "tod") {
+            now
+        } else if (day == "tom") {
+            now.plusDays(1)
+        } else {
+            error("Can't happen")
+        }
     }
 
     private fun handleDayOfWeek(now: LocalDate, matchResult: MatchResult): LocalDate {
         val dayOfWeek = convertToDayOfWeek(matchResult.groupValues[2])
         val newDate = now.with(TemporalAdjusters.next(dayOfWeek))
 
-        if (matchResult.groupValues[1] != null) {
-            return newDate.plusWeeks(1)
+        return if (matchResult.groupValues[1].isNotEmpty()) {
+            newDate.plusWeeks(1)
         } else {
-            return newDate
+            newDate
         }
     }
 

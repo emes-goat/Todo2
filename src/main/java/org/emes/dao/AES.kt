@@ -1,6 +1,5 @@
 package org.emes.dao
 
-import org.emes.dao.AES
 import java.nio.ByteBuffer
 import java.security.SecureRandom
 import java.util.*
@@ -26,8 +25,8 @@ class AES {
     fun encrypt(password: CharArray?, content: ByteArray?): ByteArray? {
         Objects.requireNonNull<CharArray?>(password)
         Objects.requireNonNull<ByteArray?>(content)
-        require(password!!.size > 0)
-        require(content!!.size > 0)
+        require(password!!.isNotEmpty()) { "Illegal argument" }
+        require(content!!.isNotEmpty()) { "Illegal argument" }
 
         val secureRandom = SecureRandom()
         val aesSalt = ByteArray(AES_SALT_LENGTH)
@@ -52,18 +51,16 @@ class AES {
     fun decrypt(password: CharArray?, aesResult: ByteArray?): ByteArray {
         Objects.requireNonNull<CharArray?>(password)
         Objects.requireNonNull<ByteArray?>(aesResult)
-        require(password!!.size > 0)
-        require(aesResult!!.size > 0)
+        require(password!!.isNotEmpty()) { "Illegal argument" }
+        require(aesResult!!.isNotEmpty()) { "Illegal argument" }
 
         val byteBuffer = ByteBuffer.wrap(aesResult)
 
         val passwordSalt = ByteArray(PASSWORD_SALT_LENGTH)
         val aesSalt = ByteArray(AES_SALT_LENGTH)
         val aad = ByteArray(AAD_LENGTH)
-        val ciphertext = ByteArray(
-            (aesResult.size - PASSWORD_SALT_LENGTH - AES_SALT_LENGTH
-                    - AAD_LENGTH)
-        )
+        val ciphertext =
+            ByteArray((aesResult.size - PASSWORD_SALT_LENGTH - AES_SALT_LENGTH - AAD_LENGTH))
 
         byteBuffer.get(passwordSalt, 0, passwordSalt.size)
         byteBuffer.get(aesSalt, 0, aesSalt.size)
@@ -83,16 +80,15 @@ class AES {
     }
 
     private fun getKey(password: CharArray?, salt: ByteArray): ByteArray {
-        val derivationSpec =
-            PBEKeySpec(
-                password,
-                salt,
-                KEY_DERIVATION_ITERATIONS,
-                AES_KEY_SIZE
-            )
+        val derivationSpec = PBEKeySpec(
+            password,
+            salt,
+            KEY_DERIVATION_ITERATIONS,
+            AES_KEY_SIZE
+        )
         return SecretKeyFactory.getInstance(KEY_DERIVATION_FUNCTION)
             .generateSecret(derivationSpec)
-            .getEncoded()
+            .encoded
     }
 
     private fun joinArrays(
@@ -101,10 +97,8 @@ class AES {
         aad: ByteArray,
         ciphertext: ByteArray
     ): ByteArray? {
-        val result = ByteBuffer.allocate(
-            (PASSWORD_SALT_LENGTH + AES_SALT_LENGTH + AAD_LENGTH
-                    + ciphertext.size)
-        )
+        val result =
+            ByteBuffer.allocate((PASSWORD_SALT_LENGTH + AES_SALT_LENGTH + AAD_LENGTH + ciphertext.size))
 
         result.put(passwordSalt)
         result.put(aesSalt)
@@ -113,10 +107,4 @@ class AES {
 
         return result.array()
     }
-
-    private fun require(condition: Boolean) {
-        require(condition) { "Illegal argument" }
-    }
-
-
 }

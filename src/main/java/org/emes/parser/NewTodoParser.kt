@@ -10,9 +10,11 @@ class NewTodoParser(private val clock: Clock) {
     private val dueParser = DueParser()
     private val recurringParser = RecurringParser()
 
-    fun parse(command: String): Todo {
+    fun parse(command: String): Todo? {
         logger.info { "Parse command: $command" }
-        require(command.isNotBlank())
+        if (command.isBlank()) {
+            return null
+        }
 
         val now = LocalDate.now(clock)
 
