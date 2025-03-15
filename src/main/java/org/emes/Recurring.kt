@@ -5,10 +5,10 @@ import java.time.LocalDate
 
 data class Recurring(
     val mode: RecurringMode,
-    val dayOfWeek: DayOfWeek?,
-    val dayOfMonth: Int?,
-    val interval: Int?,
-    val recurringIntervalUnit: RecurringIntervalUnit?
+    val dayOfWeek: DayOfWeek? = null,
+    val dayOfMonth: Int? = null,
+    val interval: Int? = null,
+    val intervalUnit: String? = null
 ) {
     fun nextOccurrence(now: LocalDate): LocalDate {
         return when (mode) {

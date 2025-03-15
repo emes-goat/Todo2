@@ -9,12 +9,12 @@ class DueParser {
 
     private val logger = KotlinLogging.logger {}
 
-    private val inXUnit = Regex("\\bin (\\d{1,2}) (day|week|month)s?\\b")
-    private val dayOfWeek = Regex("\\b(next )?(mon|tue|wed|thu|fri|sat|sun)\\b")
+    private val inXUnit = Regex("\\bin $zeroToNinetyNineGroup $unitsGroup\\b")
+    private val dayOfWeek = Regex("\\b(next )?${daysOfWeekGroup}\\b")
     private val todayTomorrow = Regex("\\b(tod|tom)\\b")
     private val date = Regex(
         "\\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)?\\s" +
-                "([1-9]|[12][0-9]|3[01])(st|nd|rd|th)\\b"
+                "${zeroToThirtyOneGroup}$ordinalNumbers\\b"
     )
 
     private val patternWithHandlers = listOf<RegexWithHandler>(
@@ -38,7 +38,7 @@ class DueParser {
 
     private fun handleDate(now: LocalDate, matchResult: MatchResult): LocalDate {
         val month =
-            matchResult.groupValues[1].takeIf(String::isNotBlank)?.let { convertToMonth(it) }
+            matchResult.groupValues[1].takeIf(String::isNotBlank)?.toMonthValue()
         val day = matchResult.groupValues[2].toInt()
 
         return if (month == null) {
@@ -70,7 +70,7 @@ class DueParser {
     }
 
     private fun handleDayOfWeek(now: LocalDate, matchResult: MatchResult): LocalDate {
-        val dayOfWeek = convertToDayOfWeek(matchResult.groupValues[2])
+        val dayOfWeek = matchResult.groupValues[2].toDayOfWeek()
         val newDate = now.with(TemporalAdjusters.next(dayOfWeek))
 
         return if (matchResult.groupValues[1].isNotEmpty()) {
@@ -82,9 +82,9 @@ class DueParser {
 
     private fun handleInXUnit(now: LocalDate, matchResult: MatchResult): LocalDate {
         val amount = matchResult.groupValues[1].toLong()
-        val unit = matchResult.groupValues[2]
+        val unit = matchResult.groupValues[2].toTemporalUnit()
 
-        return now.plus(amount, getUnit(unit))
+        return now.plus(amount, unit)
     }
 
     private data class RegexWithHandler(

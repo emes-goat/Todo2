@@ -8,23 +8,17 @@ class RecurringParser {
 
     private val logger = KotlinLogging.logger {}
 
-    private val everyDayOfWeek = Regex("\\bin (\\d)+ (day|week|month)s?\\b")
-    private val everyDayOfMonth = Regex("\\bin (\\d)+ (day|week|month)s?\\b")
-    private val everyXDays = Regex("\\bin (\\d)+ (day|week|month)s?\\b")
-    private val everyXWeeks = Regex("\\bin (\\d)+ (day|week|month)s?\\b")
-    private val everyXMonths = Regex("\\bin (\\d)+ (day|week|month)s?\\b")
+    private val everyDayOfWeek = Regex("\\bevery ${daysOfWeekGroup}\\b")
+    private val everyDayOfMonth = Regex("\\bevery ${zeroToThirtyOneGroup}$ordinalNumbers\\b")
+    private val everyXUnit = Regex("\\bevery $zeroToNinetyNineGroup $unitsGroup\\b")
 
     private val patternWithHandlers = listOf<RegexWithHandler>(
         RegexWithHandler(everyDayOfWeek) { result -> handleEveryDayOfWeek(result) },
         RegexWithHandler(everyDayOfMonth) { result -> handleEveryDayOfMonth(result) },
-        RegexWithHandler(everyXDays) { result -> handleEveryXDays(result) },
-        RegexWithHandler(everyXWeeks) { result -> handleEveryXWeeks(result) },
-        RegexWithHandler(everyXMonths) { result -> handleEveryXMonths(result) }
+        RegexWithHandler(everyXUnit) { result -> handleEveryXUnit(result) },
     )
 
     fun parse(command: String): ParseResult<Recurring>? {
-        return null
-
         return patternWithHandlers
             .mapNotNull<RegexWithHandler, ParseResult<Recurring>> { patternWithHandler ->
                 patternWithHandler.regex.findAll(command).lastOrNull()?.let { match ->
@@ -37,23 +31,24 @@ class RecurringParser {
     }
 
     private fun handleEveryDayOfWeek(matchResult: MatchResult): Recurring {
-        return Recurring(RecurringMode.EVERY_DAY_OF_WEEK, null, null, null, null)
+        val dayOfWeek = matchResult.groupValues[1].toDayOfWeek()
+        return Recurring(RecurringMode.EVERY_DAY_OF_WEEK, dayOfWeek = dayOfWeek)
     }
 
     private fun handleEveryDayOfMonth(matchResult: MatchResult): Recurring {
-        return Recurring(RecurringMode.EVERY_DAY_OF_WEEK, null, null, null, null)
+        val dayOfMonth = matchResult.groupValues[1].toInt()
+        return Recurring(RecurringMode.EVERY_DAY_OF_MONTH, dayOfMonth = dayOfMonth)
     }
 
-    private fun handleEveryXDays(matchResult: MatchResult): Recurring {
-        return Recurring(RecurringMode.EVERY_DAY_OF_WEEK, null, null, null, null)
-    }
+    private fun handleEveryXUnit(matchResult: MatchResult): Recurring {
+        val interval = matchResult.groupValues[1].toInt()
+        val unit = matchResult.groupValues[2]
 
-    private fun handleEveryXWeeks(matchResult: MatchResult): Recurring {
-        return Recurring(RecurringMode.EVERY_DAY_OF_WEEK, null, null, null, null)
-    }
-
-    private fun handleEveryXMonths(matchResult: MatchResult): Recurring {
-        return Recurring(RecurringMode.EVERY_DAY_OF_WEEK, null, null, null, null)
+        return Recurring(
+            RecurringMode.EVERY_DAY_OF_WEEK,
+            interval = interval,
+            intervalUnit = unit
+        )
     }
 
     private data class RegexWithHandler(

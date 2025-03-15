@@ -4,8 +4,8 @@ import java.time.DayOfWeek
 import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalUnit
 
-fun convertToDayOfWeek(dayOfWeek: String): DayOfWeek {
-    return when (dayOfWeek) {
+fun String.toDayOfWeek(): DayOfWeek {
+    return when (this) {
         "mon" -> DayOfWeek.MONDAY
         "tue" -> DayOfWeek.TUESDAY
         "wed" -> DayOfWeek.WEDNESDAY
@@ -17,8 +17,8 @@ fun convertToDayOfWeek(dayOfWeek: String): DayOfWeek {
     }
 }
 
-fun convertToMonth(month: String): Int {
-    return when (month) {
+fun String.toMonthValue(): Int {
+    return when (this) {
         "jan" -> 1
         "feb" -> 2
         "mar" -> 3
@@ -35,11 +35,17 @@ fun convertToMonth(month: String): Int {
     }
 }
 
-fun getUnit(unit: String): TemporalUnit {
-    return when (unit) {
+fun String.toTemporalUnit(): TemporalUnit {
+    return when (this) {
         "day" -> ChronoUnit.DAYS
         "week" -> ChronoUnit.WEEKS
         "month" -> ChronoUnit.MONTHS
         else -> error("Can't happen")
     }
 }
+
+const val zeroToNinetyNineGroup = "(\\d{1,2})"
+const val daysOfWeekGroup = "(mon|tue|wed|thu|fri|sat|sun)"
+const val zeroToThirtyOneGroup = "([1-9]|[12][0-9]|3[01])"
+const val unitsGroup = "(day|week|month)s?"
+const val ordinalNumbers = "(?:st|nd|rd|th)"
