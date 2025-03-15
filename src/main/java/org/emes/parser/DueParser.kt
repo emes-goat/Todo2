@@ -1,11 +1,9 @@
 package org.emes.parser
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import java.time.DayOfWeek
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
+import java.time.MonthDay
 import java.time.temporal.TemporalAdjusters
-import java.time.temporal.TemporalUnit
 
 class DueParser {
 
@@ -15,8 +13,8 @@ class DueParser {
     private val dayOfWeek = Regex("\\b(next )?(mon|tue|wed|thu|fri|sat|sun)\\b")
     private val todayTomorrow = Regex("\\b(tod|tom)\\b")
     private val date = Regex(
-        "\\b(?i)(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\\s+([1-9]|[12][0-9]|3[01])"
-                + "(?:st|nd|rd|th)\\b|\\b([1-9]|[12][0-9]|3[01])(?:st|nd|rd|th)\\b"
+        "\\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)?\\s" +
+                "([1-9]|[12][0-9]|3[01])(st|nd|rd|th)\\b"
     )
 
     private val patternWithHandlers = listOf<RegexWithHandler>(
@@ -39,7 +37,25 @@ class DueParser {
     }
 
     private fun handleDate(now: LocalDate, matchResult: MatchResult): LocalDate {
-        return LocalDate.now()
+        val month =
+            matchResult.groupValues[1].takeIf(String::isNotBlank)?.let { convertToMonth(it) }
+        val day = matchResult.groupValues[2].toInt()
+
+        return if (month == null) {
+            return if (day > now.dayOfMonth && now.month.length(now.isLeapYear) >= day) {
+                now.withDayOfMonth(day)
+            } else {
+                now.plusMonths(1).withDayOfMonth(day)
+            }
+        } else {
+            return if (MonthDay.of(month.toInt(), day)
+                    .isAfter(MonthDay.of(now.month, now.dayOfMonth))
+            ) {
+                now.withMonth(month.toInt()).withDayOfMonth(day)
+            } else {
+                now.withYear(now.year + 1).withMonth(month.toInt()).withDayOfMonth(day)
+            }
+        }
     }
 
     private fun handleTodayTomorrow(now: LocalDate, matchResult: MatchResult): LocalDate {
@@ -64,33 +80,11 @@ class DueParser {
         }
     }
 
-    private fun convertToDayOfWeek(dayOfWeek: String): DayOfWeek {
-        return when (dayOfWeek) {
-            "mon" -> DayOfWeek.MONDAY
-            "tue" -> DayOfWeek.TUESDAY
-            "wed" -> DayOfWeek.WEDNESDAY
-            "thu" -> DayOfWeek.THURSDAY
-            "fri" -> DayOfWeek.FRIDAY
-            "sat" -> DayOfWeek.SATURDAY
-            "sun" -> DayOfWeek.SUNDAY
-            else -> error("Can't happen")
-        }
-    }
-
     private fun handleInXUnit(now: LocalDate, matchResult: MatchResult): LocalDate {
-        val amount = matchResult.groupValues[1].toInt()
+        val amount = matchResult.groupValues[1].toLong()
         val unit = matchResult.groupValues[2]
 
-        return now.plus(amount.toLong(), getUnit(unit))
-    }
-
-    private fun getUnit(unit: String): TemporalUnit {
-        return when (unit) {
-            "day" -> ChronoUnit.DAYS
-            "week" -> ChronoUnit.WEEKS
-            "month" -> ChronoUnit.MONTHS
-            else -> error("Can't happen")
-        }
+        return now.plus(amount, getUnit(unit))
     }
 
     private data class RegexWithHandler(
