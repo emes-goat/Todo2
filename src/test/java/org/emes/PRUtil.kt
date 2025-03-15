@@ -1,10 +1,10 @@
-package org.emes;
+package org.emes
 
-import java.time.LocalDate;
+import org.emes.parser.ParseResult
+import java.time.LocalDate
 
-public class PRUtil {
-
-  public static ParseResult<LocalDate> of(String date, int start, int end) {
-    return new ParseResult<>(LocalDate.parse(date), start, end);
-  }
+object PRUtil {
+    fun of(date: String, start: Int, end: Int): ParseResult<LocalDate?> {
+        return ParseResult<LocalDate?>(LocalDate.parse(date), IntRange(start, end))
+    }
 }

@@ -1,7 +1,7 @@
-package org.emes;
+package org.emes
 
-public enum RecurringIntervalUnit {
-  DAYS,
-  WEEKS,
-  MONTHS
+enum class RecurringIntervalUnit {
+    DAYS,
+    WEEKS,
+    MONTHS
 }

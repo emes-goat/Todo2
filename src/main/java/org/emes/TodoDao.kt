@@ -1,19 +1,17 @@
-package org.emes;
+package org.emes
 
-import java.time.LocalDate;
-import java.util.List;
+import java.time.LocalDate
 
-public interface TodoDao {
+interface TodoDao {
+    fun save(todo: Todo)
 
-  void save(Todo todo);
+    fun findAllOrderByDueDesc(): MutableList<Todo>
 
-  List<Todo> findAllOrderByDueDesc();
+    fun updateDue(id: Int, due: LocalDate)
 
-  void updateDue(Integer id, LocalDate due);
+    fun delete(id: Int)
 
-  void delete(Integer id);
+    fun init()
 
-  void init();
-
-  void close();
+    fun close()
 }

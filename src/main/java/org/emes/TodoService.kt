@@ -1,54 +1,40 @@
-package org.emes;
+package org.emes
 
-import java.time.Clock;
-import java.time.LocalDate;
+import java.time.Clock
+import java.time.LocalDate
 
-public class TodoService {
+class TodoService(
+    private val dao: TodoDao,
+    private val clock: Clock
+) {
+    fun runMainLoop() {
+        dao.init()
 
-  private final TodoDao dao;
-  private final DueParser dueParser;
-  private final RecurringParser recurringParser;
-  private final Clock clock;
-
-  public TodoService(TodoDao dao, DueParser dueParser, RecurringParser recurringParser,
-      Clock clock) {
-    this.dao = dao;
-    this.dueParser = dueParser;
-    this.recurringParser = recurringParser;
-    this.clock = clock;
-  }
-
-  public void runMainLoop() {
-    dao.init();
-
-    while (true) {
-      var todos = dao.findAllOrderByDueDesc();
-      //TODO show
-      //TODO read line
-      var command = "";
-      if (command.startsWith("create")) {
-        var due = dueParser.parse(LocalDate.now(clock), command);
-        var recurring = recurringParser.parse(command);
-        var title = ""; //TODO
-
-        //TODO save
-      } else if (command.startsWith("complete")) {
-        var id = 1;
-        var todo = todos.stream().filter(it -> it.id().equals(id)).findFirst().get();
-        if (todo.recurring() != null) {
-          dao.delete(todo.id());
-        } else {
-          var due = todo.recurring().nextOccurrence(LocalDate.now(clock));
-          dao.updateDue(todo.id(), due);
+        while (true) {
+            val todos = dao.findAllOrderByDueDesc()
+            //TODO show
+            //TODO read line
+            val command = ""
+            if (command.startsWith("create")) {
+                //TODO save
+            } else if (command.startsWith("complete")) {
+                val id = 1
+                val todo = todos.firstOrNull { it: Todo? -> it!!.id == id }
+                if (todo?.recurring != null) {
+                    dao.delete(todo.id!!)
+                } else {
+//                    val due = todo?.recurring?.first(LocalDate.now(clock))
+//                    dao.updateDue(todo.id!!, due)
+                }
+                //TODO save
+            } else {
+                break
+            }
         }
-        //TODO save
-      } else {
-        break;
-      }
+
+        dao.close()
     }
 
-    dao.close();
-  }
-
-
+    @JvmRecord
+    private data class Substring(val start: Int, val end: Int)
 }
